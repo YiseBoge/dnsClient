@@ -2,25 +2,24 @@ package api
 
 import (
 	"dnsClient/config"
-	"log"
 	"net"
 	"net/rpc"
 	"time"
 )
 
-func ServerClient() *rpc.Client {
+func ServerClient() (*rpc.Client, error) {
 	address := config.LoadConfig().Server.Address
 	port := config.LoadConfig().Server.Port
 
 	timeout := 5 * time.Second
 	_, err := net.DialTimeout("tcp", address+":"+port, timeout)
 	if err != nil {
-		log.Fatal("Site unreachable, error: ", err)
+		return nil, err
 	}
 
 	client, err := rpc.DialHTTP("tcp", address+":"+port)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return client
+	return client, nil
 }
