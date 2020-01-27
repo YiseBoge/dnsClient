@@ -11,7 +11,7 @@ func ServerClient() (*rpc.Client, error) {
 	address := config.LoadConfig().Server.Address
 	port := config.LoadConfig().Server.Port
 
-	timeout := 5 * time.Second
+	timeout := 3 * time.Second
 	_, err := net.DialTimeout("tcp", address+":"+port, timeout)
 	if err != nil {
 		return nil, err

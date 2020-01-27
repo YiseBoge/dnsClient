@@ -3,57 +3,74 @@ package main
 import (
 	"bufio"
 	"dnsClient/api"
+	"dnsClient/config"
 	"dnsClient/models"
 	"fmt"
 	"log"
 	"net/rpc"
 	"os"
+	"regexp"
 	"strings"
 )
 
 func main() {
 
-	client, err := api.ServerClient()
-	if err != nil {
-		log.Println("Site unreachable, error: ", err)
+	fmt.Println("Welcome to the DomaInator Client.")
+	configuration := config.LoadConfig()
+
+	portRegex, _ := regexp.Compile("^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])(?::([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?$")
+	domainRegex, _ := regexp.Compile("^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9].[a-zA-Z]{2,}$")
+	ipRegex, _ := regexp.Compile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]).){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$")
+
+	var res3 string
+	for true {
+		fmt.Printf("DNS Server address = \"%s\" press 'Enter' to continue or provide new address: ", configuration.Server.Address)
+		_, _ = fmt.Scanln(&res3)
+
+		if res3 == "" {
+			break
+		}
+
+		if domainRegex.MatchString(res3) || ipRegex.MatchString(res3) {
+			configuration.Server.Address = res3
+			break
+		}
+		fmt.Println("**Bad input, Please try again**")
 	}
 
-	//domain := models.DomainName{Name:"www.aait.gov.et",Address:"10.90.10.70"}
-	//err := domain.Register(client)
-	//if err != nil{
-	//	log.Fatal(err)
-	//}
+	var res4 string
+	for true {
+		fmt.Printf("DNS Server port = \"%s\" press 'Enter' to continue or provide new port: ", configuration.Server.Port)
+		_, _ = fmt.Scanln(&res4)
 
-	//domain := models.DomainName{Name:"www.eca.et",Address:"10.20.30.40"}
-	//err := domain.Register(client)
-	//if err != nil{
-	//	log.Fatal(err)
-	//}
+		if res4 == "" {
+			break
+		}
 
-	//allResults, err := models.DomainName{}.FindAllLocal(client)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//fmt.Println("All Local: ", allResults)
+		if portRegex.MatchString(res4) {
+			configuration.Server.Port = res4
+			break
+		}
+		fmt.Println("**Bad input, Please try again**")
+	}
 
-	//lookupResults, err := models.DomainName{}.Lookup(client, "www.eca.et")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//fmt.Println("Looked up: ", lookupResults)
+	config.SaveConfig(configuration)
 
-	//domain2 := models.DomainName{Name: "www.aait.gov.et", Address: "10.90.10.70"}
-	//err2 := domain2.Remove(client)
-	//if err2 != nil {
-	//	log.Fatal(err2)
-	//}
-	fmt.Println("Welcome to DomInator Client.")
+	client, err := api.ServerClient()
+	if err != nil {
+		log.Fatal("Site unreachable, error: ", err)
+	}
+
 	for true {
 		fmt.Printf(">> ")
 
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
-		list := strings.Split(scanner.Text(), " ")
+		str := strings.TrimSpace(scanner.Text())
+		if str == "exit" || str == "stop" {
+			break
+		}
+		list := strings.Split(str, " ")
 
 		if len(list) < 2 {
 			fmt.Println("Usage, `command <args>`")
