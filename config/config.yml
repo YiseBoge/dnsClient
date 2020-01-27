@@ -1,4 +1,0 @@
-# Server configurations
-server:
-  address: "localhost"
-  port: "4040"
