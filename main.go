@@ -74,6 +74,7 @@ func Respond(client *rpc.Client, command string, args []string) {
 		lookupResults, err := models.DomainName{}.Lookup(client, args[0])
 		if err != nil {
 			log.Println(err)
+			break
 		}
 		var addresses []string
 		for _, result := range lookupResults {
@@ -88,7 +89,6 @@ func Respond(client *rpc.Client, command string, args []string) {
 		domain := models.DomainName{Name: args[0], Address: args[1]}
 		err := domain.Register(client)
 		if err != nil {
-			log.Println(err)
 			fmt.Println("Usage, `register <name> <address>`")
 			break
 		}
